@@ -1,0 +1,265 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Tic Tac Toe</title>
+    <style>
+        body {
+            font-family: 'Arial', sans-serif;
+            background-color: #f0f0f0;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            height: 100vh;
+            margin: 0;
+            color: #333;
+        }
+        
+        .game-container {
+            background-color: white;
+            border-radius: 15px;
+            box-shadow: 0 10px 20px rgba(0, 0, 0, 0.1);
+            padding: 30px;
+            width: 350px;
+            text-align: center;
+        }
+        
+        h1 {
+            color: #2c3e50;
+            margin-top: 0;
+            font-size: 28px;
+        }
+        
+        .status {
+            font-size: 20px;
+            margin: 15px 0;
+            font-weight: bold;
+            color: #3498db;
+            height: 24px;
+        }
+        
+        .game-board {
+            display: grid;
+            grid-template-columns: repeat(3, 1fr);
+            grid-gap: 10px;
+            margin: 20px 0;
+        }
+        
+        .cell {
+            width: 100px;
+            height: 100px;
+            background-color: #ecf0f1;
+            border-radius: 10px;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            font-size: 48px;
+            font-weight: bold;
+            cursor: pointer;
+            transition: all 0.3s ease;
+        }
+        
+        .cell:hover {
+            background-color: #d6eaf8;
+        }
+        
+        .cell.x {
+            color: #e74c3c;
+        }
+        
+        .cell.o {
+            color: #2ecc71;
+        }
+        
+        .controls {
+            margin-top: 20px;
+        }
+        
+        button {
+            background-color: #3498db;
+            color: white;
+            border: none;
+            padding: 10px 20px;
+            font-size: 16px;
+            border-radius: 5px;
+            cursor: pointer;
+            transition: background-color 0.3s;
+        }
+        
+        button:hover {
+            background-color: #2980b9;
+        }
+        
+        .score-board {
+            display: flex;
+            justify-content: space-around;
+            margin: 20px 0;
+            font-size: 18px;
+        }
+        
+        .score {
+            padding: 10px 20px;
+            border-radius: 5px;
+        }
+        
+        .x-score {
+            background-color: #fadbd8;
+            color: #e74c3c;
+        }
+        
+        .o-score {
+            background-color: #d5f5e3;
+            color: #2ecc71;
+        }
+        
+        .ties {
+            background-color: #ebedef;
+            color: #7f8c8d;
+        }
+    </style>
+</head>
+<body>
+    <div class="game-container">
+        <h1>Tic Tac Toe</h1>
+        
+        <div class="score-board">
+            <div class="score x-score">
+                X: <span id="x-score">0</span>
+            </div>
+            <div class="score ties">
+                Ties: <span id="tie-score">0</span>
+            </div>
+            <div class="score o-score">
+                O: <span id="o-score">0</span>
+            </div>
+        </div>
+        
+        <div class="status" id="status">X's turn</div>
+        
+        <div class="game-board" id="board">
+            <div class="cell" data-index="0"></div>
+            <div class="cell" data-index="1"></div>
+            <div class="cell" data-index="2"></div>
+            <div class="cell" data-index="3"></div>
+            <div class="cell" data-index="4"></div>
+            <div class="cell" data-index="5"></div>
+            <div class="cell" data-index="6"></div>
+            <div class="cell" data-index="7"></div>
+            <div class="cell" data-index="8"></div>
+        </div>
+        
+        <div class="controls">
+            <button id="reset-btn">Reset Game</button>
+        </div>
+    </div>
+
+    <script>
+        document.addEventListener('DOMContentLoaded', () => {
+            const board = document.getElementById('board');
+            const cells = document.querySelectorAll('.cell');
+            const status = document.getElementById('status');
+            const resetBtn = document.getElementById('reset-btn');
+            const xScoreEl = document.getElementById('x-score');
+            const oScoreEl = document.getElementById('o-score');
+            const tieScoreEl = document.getElementById('tie-score');
+            
+            let currentPlayer = 'X';
+            let gameState = ['', '', '', '', '', '', '', '', ''];
+            let gameActive = true;
+            let scores = { x: 0, o: 0, tie: 0 };
+            
+            const winningConditions = [
+                [0, 1, 2], [3, 4, 5], [6, 7, 8], // rows
+                [0, 3, 6], [1, 4, 7], [2, 5, 8], // columns
+                [0, 4, 8], [2, 4, 6]             // diagonals
+            ];
+            
+            const handleCellClick = (e) => {
+                const clickedCell = e.target;
+                const clickedCellIndex = parseInt(clickedCell.getAttribute('data-index'));
+                
+                if (gameState[clickedCellIndex] !== '' || !gameActive) {
+                    return;
+                }
+                
+                gameState[clickedCellIndex] = currentPlayer;
+                clickedCell.textContent = currentPlayer;
+                clickedCell.classList.add(currentPlayer.toLowerCase());
+                
+                checkResult();
+            };
+            
+            const checkResult = () => {
+                let roundWon = false;
+                
+                for (let i = 0; i < winningConditions.length; i++) {
+                    const [a, b, c] = winningConditions[i];
+                    
+                    if (gameState[a] === '' || gameState[b] === '' || gameState[c] === '') {
+                        continue;
+                    }
+                    
+                    if (gameState[a] === gameState[b] && gameState[b] === gameState[c]) {
+                        roundWon = true;
+                        break;
+                    }
+                }
+                
+                if (roundWon) {
+                    status.textContent = `${currentPlayer} wins!`;
+                    updateScores(currentPlayer);
+                    gameActive = false;
+                    return;
+                }
+                
+                if (!gameState.includes('')) {
+                    status.textContent = "Game ended in a tie!";
+                    updateScores('tie');
+                    gameActive = false;
+                    return;
+                }
+                
+                currentPlayer = currentPlayer === 'X' ? 'O' : 'X';
+                status.textContent = `${currentPlayer}'s turn`;
+            };
+            
+            const updateScores = (winner) => {
+                if (winner === 'X') {
+                    scores.x++;
+                    xScoreEl.textContent = scores.x;
+                } else if (winner === 'O') {
+                    scores.o++;
+                    oScoreEl.textContent = scores.o;
+                } else {
+                    scores.tie++;
+                    tieScoreEl.textContent = scores.tie;
+                }
+            };
+            
+            const resetGame = () => {
+                currentPlayer = 'X';
+                gameState = ['', '', '', '', '', '', '', '', ''];
+                gameActive = true;
+                status.textContent = `${currentPlayer}'s turn`;
+                
+                cells.forEach(cell => {
+                    cell.textContent = '';
+                    cell.classList.remove('x', 'o');
+                });
+            };
+            
+            const resetAll = () => {
+                resetGame();
+                scores = { x: 0, o: 0, tie: 0 };
+                xScoreEl.textContent = '0';
+                oScoreEl.textContent = '0';
+                tieScoreEl.textContent = '0';
+            };
+            
+            cells.forEach(cell => cell.addEventListener('click', handleCellClick));
+            resetBtn.addEventListener('click', resetAll);
+        });
+    </script>
+</body>
+</html>
